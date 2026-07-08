@@ -1,4 +1,5 @@
 mod files;
+mod menu;
 mod recent;
 mod state;
 
