@@ -22,4 +22,3 @@ docs/superpowers/
 # Rust / Tauri build artifacts
 src-tauri/target/
 src-tauri/gen/
-src-tauri/Cargo.lock
