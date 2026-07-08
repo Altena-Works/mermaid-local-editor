@@ -11,6 +11,7 @@ import { SAMPLES, DEFAULT_CODE } from "./samples";
 import { detectInitialLocale, applyDom, getLocale, setLocale, t, LOCALES } from "./i18n";
 import type { Locale } from "./i18n";
 import { DocumentManager, type DocHost } from "./document";
+import { createTauriBridge, onCommand, allowClose } from "./tauri-bridge";
 
 // ---------- persisted state ----------
 const LS = {
@@ -599,9 +600,9 @@ const host: DocHost = {
   defaultContent: DEFAULT_CODE,
 };
 
-doc = new DocumentManager(window.api, host);
+doc = new DocumentManager(createTauriBridge(), host);
 
-window.api.onCommand((payload) => {
+onCommand((payload) => {
   switch (payload.type) {
     case "new":
       void doc.newDoc();
@@ -619,7 +620,16 @@ window.api.onCommand((payload) => {
       if (payload.path) void doc.openRecent(payload.path);
       break;
     case "close-request":
-      void doc.handleCloseRequest(() => window.api.allowClose());
+      void doc.handleCloseRequest(() => void allowClose());
+      break;
+    case "zoom-in":
+      els.btnZoomIn.click();
+      break;
+    case "zoom-out":
+      els.btnZoomOut.click();
+      break;
+    case "zoom-reset":
+      els.btnZoomReset.click();
       break;
   }
 });
