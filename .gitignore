@@ -18,3 +18,8 @@ HANDOFF.md
 
 # Local-only design docs (brainstorm specs/plans; not for the public repo)
 docs/superpowers/
+
+# Rust / Tauri build artifacts
+src-tauri/target/
+src-tauri/gen/
+src-tauri/Cargo.lock
