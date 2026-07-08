@@ -48,33 +48,27 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            platform: mac
             key: mac
-            args: ""
+            target: universal-apple-darwin
             artifacts: |
-              release/*.dmg
-              release/*.zip
+              src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
           - os: windows-latest
-            platform: win
             key: win-x64
-            args: "--x64"
+            target: x86_64-pc-windows-msvc
             artifacts: |
-              release/*-x64.exe
+              src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
           - os: windows-latest
-            platform: win
             key: win-arm64
-            args: "--arm64"
+            target: aarch64-pc-windows-msvc
             artifacts: |
-              release/*-arm64.exe
+              src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.exe
           - os: ubuntu-latest
-            platform: linux
             key: linux
-            args: ""
+            target: x86_64-unknown-linux-gnu
             artifacts: |
-              release/*.AppImage
-              release/*.deb
-              release/*.rpm
-              release/*.pacman
+              src-tauri/target/release/bundle/appimage/*.AppImage
+              src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/rpm/*.rpm
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -87,26 +81,25 @@ jobs:
           node-version: 24
           cache: npm
 
-      - run: npm ci
+      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
+        with:
+          targets: ${{ matrix.target }}
 
-      # Linux の rpm / pacman ターゲットは外部ツールに依存する。
-      # rpm -> rpmbuild、pacman -> bsdtar(libarchive-tools)。ubuntu-latest が
-      # 将来 rpm を外しても落ちないよう、両方を明示インストールする。
-      - name: Install Linux packaging deps
-        if: matrix.platform == 'linux'
+      - name: Install Linux system deps (Tauri build requirements)
+        if: matrix.key == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libarchive-tools rpm
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf rpm
 
-      # タグのバージョンを成果物名へ反映（electron-builder は package.json を参照する）
+      - run: npm ci
+
       - name: Set version
         run: npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
 
-      - name: Build renderer/main/preload
-        run: npm run build
+      - run: npm run build:renderer
 
       - name: Package (${{ matrix.key }})
-        run: npx electron-builder --${{ matrix.platform }} ${{ matrix.args }} --publish never
+        run: npx tauri build --target ${{ matrix.target }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
