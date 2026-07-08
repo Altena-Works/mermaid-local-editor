@@ -4,8 +4,7 @@
   "version": "0.5.1",
   "license": "Apache-2.0",
   "type": "module",
-  "main": "out/main/index.js",
-  "description": "A local, cross-platform Mermaid diagram editor (mermaid.live for the desktop), built with Electron + Vite.",
+  "description": "A local, cross-platform Mermaid diagram editor (mermaid.live for the desktop), built with Tauri + Vite.",
   "author": "4ltena <altena.celestia@gmail.com>",
   "scripts": {
     "dev": "tauri dev",

@@ -83,7 +83,10 @@ export async function exportDiagram(
     canvas.toBlob(
       (blob) => {
         if (blob) {
-          void blob.arrayBuffer().then((buf) => saveViaDialog(new Uint8Array(buf), `mermaid-${timestamp()}.${ext}`).then(resolve));
+          void blob
+            .arrayBuffer()
+            .then((buf) => saveViaDialog(new Uint8Array(buf), `mermaid-${timestamp()}.${ext}`))
+            .then(resolve, resolve);
         } else {
           resolve();
         }

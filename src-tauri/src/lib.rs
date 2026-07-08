@@ -10,7 +10,7 @@ mod state;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(state::AppState::default())
         .invoke_handler(tauri::generate_handler![
@@ -62,6 +62,46 @@ pub fn run() {
                 let _ = window.emit("command", serde_json::json!({ "type": "close-request" }));
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    // `app_handle` is only read on macOS (Reopen needs it to rebuild the
+    // window); the leading underscore keeps other platforms warning-free
+    // while still letting the macOS-only arms use it by that name.
+    app.run(|_app_handle, event| match event {
+        // macOS: closing the last window must not quit the app (mirrors
+        // Electron's `window-all-closed`, a no-op on darwin there too) so the
+        // Dock icon stays alive for the `Reopen` handler below. On other
+        // platforms we leave the default behavior (quit) untouched. Note:
+        // this only intercepts "last window destroyed" exits (`code: None`
+        // from that path) — Cmd+Q / the native Quit menu item terminates the
+        // process directly via AppKit and never reaches this handler, so it
+        // is unaffected.
+        #[cfg(target_os = "macos")]
+        tauri::RunEvent::ExitRequested { api, .. } => {
+            api.prevent_exit();
+        }
+        // macOS: clicking the Dock icon while no window is open reopens one
+        // (mirrors Electron's `activate` handler).
+        #[cfg(target_os = "macos")]
+        tauri::RunEvent::Reopen {
+            has_visible_windows,
+            ..
+        } => {
+            if !has_visible_windows {
+                if let Some(config) = _app_handle
+                    .config()
+                    .app
+                    .windows
+                    .iter()
+                    .find(|w| w.label == "main")
+                {
+                    if let Ok(builder) = tauri::WebviewWindowBuilder::from_config(_app_handle, config) {
+                        let _ = builder.build();
+                    }
+                }
+            }
+        }
+        _ => {}
+    });
 }

@@ -68,4 +68,50 @@ mod tests {
         let list = vec!["a".to_string(), "b".to_string(), "c".to_string()];
         assert_eq!(add_recent(&list, "d", 3), vec!["d", "a", "b"]);
     }
+
+    /// Writes `contents` to a fresh temp file, unique per test and process, so
+    /// parallel test runs don't clobber each other; cleans up on drop.
+    struct TempStateFile(std::path::PathBuf);
+
+    impl TempStateFile {
+        fn new(name: &str, contents: &str) -> Self {
+            let path = std::env::temp_dir().join(format!(
+                "mle-recent-test-{name}-{}.json",
+                std::process::id()
+            ));
+            fs::write(&path, contents).unwrap();
+            Self(path)
+        }
+    }
+
+    impl Drop for TempStateFile {
+        fn drop(&mut self) {
+            let _ = fs::remove_file(&self.0);
+        }
+    }
+
+    #[test]
+    fn falls_back_to_default_on_malformed_json() {
+        let file = TempStateFile::new("malformed", "not json at all {{{");
+        assert_eq!(load_state(&file.0), RecentState::default());
+    }
+
+    #[test]
+    fn filters_out_non_string_entries_in_recent() {
+        let file = TempStateFile::new(
+            "non-string-entries",
+            r#"{"recent": ["a", 1, null, "b", true], "lastPath": "a"}"#,
+        );
+        let state = load_state(&file.0);
+        assert_eq!(state.recent, vec!["a".to_string(), "b".to_string()]);
+        assert_eq!(state.last_path, Some("a".to_string()));
+    }
+
+    #[test]
+    fn defaults_last_path_to_none_when_missing() {
+        let file = TempStateFile::new("missing-last-path", r#"{"recent": ["a", "b"]}"#);
+        let state = load_state(&file.0);
+        assert_eq!(state.recent, vec!["a".to_string(), "b".to_string()]);
+        assert_eq!(state.last_path, None);
+    }
 }
