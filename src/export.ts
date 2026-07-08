@@ -1,15 +1,16 @@
-// File export helpers. Blob + anchor download works in the Electron renderer
-// (Chromium), where the main process turns it into a Save dialog.
+// File export helpers. Bytes are base64-encoded and handed to the Rust
+// `export_save` command, which shows a native save dialog and writes them.
 
-function triggerDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+import { invoke } from "@tauri-apps/api/core";
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+async function saveViaDialog(bytes: Uint8Array, filename: string): Promise<void> {
+  await invoke("export_save", { suggestedName: filename, base64Data: bytesToBase64(bytes) });
 }
 
 function timestamp(): string {
@@ -54,10 +55,8 @@ export async function exportDiagram(
   const source = new XMLSerializer().serializeToString(clone);
 
   if (opts.format === "svg") {
-    const blob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>\n${source}`], {
-      type: "image/svg+xml;charset=utf-8",
-    });
-    triggerDownload(blob, `mermaid-${timestamp()}.svg`);
+    const svgText = `<?xml version="1.0" encoding="UTF-8"?>\n${source}`;
+    await saveViaDialog(new TextEncoder().encode(svgText), `mermaid-${timestamp()}.svg`);
     return;
   }
 
@@ -83,8 +82,11 @@ export async function exportDiagram(
   await new Promise<void>((resolve) => {
     canvas.toBlob(
       (blob) => {
-        if (blob) triggerDownload(blob, `mermaid-${timestamp()}.${ext}`);
-        resolve();
+        if (blob) {
+          void blob.arrayBuffer().then((buf) => saveViaDialog(new Uint8Array(buf), `mermaid-${timestamp()}.${ext}`).then(resolve));
+        } else {
+          resolve();
+        }
       },
       mime,
       opts.format === "webp" ? (opts.quality ?? 0.92) : undefined,

@@ -2,6 +2,7 @@ use tauri::{Emitter, Manager};
 
 mod commands;
 mod dialogs;
+mod export;
 mod files;
 mod menu;
 mod recent;
@@ -17,6 +18,7 @@ pub fn run() {
             files::file_read,
             files::dialog_save,
             files::file_write,
+            export::export_save,
             dialogs::confirm_unsaved,
             commands::startup_path,
             commands::set_active_doc,
