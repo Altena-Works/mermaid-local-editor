@@ -1,3 +1,4 @@
+mod dialogs;
 mod files;
 mod menu;
 mod recent;
@@ -9,6 +10,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(state::AppState::default())
         .invoke_handler(tauri::generate_handler![
+            dialogs::confirm_unsaved,
             files::dialog_open,
             files::file_read,
             files::dialog_save,
