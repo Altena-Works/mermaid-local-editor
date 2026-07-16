@@ -14,6 +14,18 @@ describe("translate", () => {
     expect(translate("fr", "export.run")).toBe("Exporter");
     expect(translate("ko", "status.exported")).toBe("내보냈습니다");
   });
+  it("has the new color-theme keys in every locale", () => {
+    const keys = [
+      "title.colorTheme", "theme.system", "theme.light", "theme.dark", "theme.custom",
+      "theme.customTitle", "theme.fieldBase", "theme.fieldBg", "theme.fieldPanel",
+      "theme.fieldAccent", "theme.fieldText", "theme.cancel", "theme.apply",
+    ];
+    for (const locale of LOCALES.map((l) => l.code)) {
+      for (const key of keys) {
+        expect(translate(locale, key)).not.toBe(key);
+      }
+    }
+  });
 });
 
 describe("resolveLocale", () => {
