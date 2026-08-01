@@ -10,6 +10,17 @@ describe("translate", () => {
     expect(translate("en", "no.such.key")).toBe("no.such.key");
     expect(translate("fr", "no.such.key")).toBe("no.such.key");
   });
+
+  it("localizes edge routing controls and falls back to English", () => {
+    expect(translate("ja", "btn.edgeRouting")).toBe("配線調整");
+    expect(translate("fr", "btn.edgeRouting")).toBe("Adjust edges");
+    expect(translate("en", "status.edgeSelected")).toBe(
+      "Edge selected; click it to add a route point",
+    );
+    expect(translate("ja", "status.edgeSelected")).toBe(
+      "配線を選択しました。クリックで経由点を追加できます",
+    );
+  });
   it("uses each locale's own translation when present", () => {
     expect(translate("fr", "export.run")).toBe("Exporter");
     expect(translate("ko", "status.exported")).toBe("내보냈습니다");
@@ -25,6 +36,37 @@ describe("translate", () => {
         expect(translate(locale, key)).not.toBe(key);
       }
     }
+  });
+  it("has node movement and edge mode keys in every locale", () => {
+    const keys = [
+      "title.edgeDefaultMode",
+      "title.edgeMode",
+      "title.edgeAutoReroute",
+      "title.nodeReset",
+      "edge.defaultMode",
+      "edge.mode",
+      "edge.modeInherit",
+      "edge.modeCorner",
+      "edge.modeSmooth",
+      "edge.autoReroute",
+      "edge.autoRerouteHint",
+      "edge.handleDeleteHint",
+      "node.reset",
+      "node.sourceJumpHint",
+      "status.edgeModeChanged",
+      "status.edgeAutoRerouted",
+      "status.nodeReset",
+      "status.nodeSourceRevealed",
+      "status.nodeSourceNotFound",
+      "status.nodeSourceUnsupported",
+    ];
+    for (const locale of LOCALES.map((item) => item.code)) {
+      for (const key of keys) {
+        expect(translate(locale, key)).not.toBe(key);
+      }
+    }
+    expect(translate("en", "edge.modeSmooth")).toBe("Smooth curve");
+    expect(translate("ja", "edge.modeSmooth")).toBe("自動曲線");
   });
 });
 

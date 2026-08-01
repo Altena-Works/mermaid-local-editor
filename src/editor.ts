@@ -1,35 +1,36 @@
-import { EditorState, Compartment, type Extension } from "@codemirror/state";
+import {
+  Compartment,
+  EditorState,
+  Transaction,
+  type Extension,
+} from "@codemirror/state";
 import { EditorView, keymap, lineNumbers, highlightActiveLine } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { bracketMatching } from "@codemirror/language";
-import type { ThemeVars } from "./color-theme";
 
 export interface EditorOptions {
   parent: HTMLElement;
   initialDoc: string;
   onChange: (doc: string) => void;
-  vars: ThemeVars;
+  dark: boolean;
 }
 
-// Builds a CodeMirror theme from the active color theme's resolved variables,
-// so the editor always matches whichever preset is selected.
-function buildCmTheme(vars: ThemeVars): Extension {
-  return EditorView.theme(
-    {
-      "&": { color: vars.text, backgroundColor: vars.bgPanel },
-      ".cm-content": { caretColor: vars.accent },
-      ".cm-cursor, .cm-dropCursor": { borderLeftColor: vars.accent },
-      ".cm-activeLine": { backgroundColor: vars.bgSoft },
-      ".cm-gutters": {
-        backgroundColor: vars.bgPanel,
-        color: vars.textSoft,
-        border: "none",
-      },
-      ".cm-activeLineGutter": { backgroundColor: vars.bgSoft },
+// Minimal dark theme so the editor follows the UI light/dark toggle.
+const darkTheme = EditorView.theme(
+  {
+    "&": { color: "#e6e7ea", backgroundColor: "#202226" },
+    ".cm-content": { caretColor: "#a06bff" },
+    ".cm-cursor, .cm-dropCursor": { borderLeftColor: "#a06bff" },
+    ".cm-activeLine": { backgroundColor: "#2a2c31" },
+    ".cm-gutters": {
+      backgroundColor: "#202226",
+      color: "#6b7178",
+      border: "none",
     },
-    { dark: vars.base === "dark" },
-  );
-}
+    ".cm-activeLineGutter": { backgroundColor: "#2a2c31" },
+  },
+  { dark: true },
+);
 
 export class CodeEditor {
   private view: EditorView;
@@ -40,12 +41,12 @@ export class CodeEditor {
     this.onChange = opts.onChange;
     this.view = new EditorView({
       parent: opts.parent,
-      state: this.makeState(opts.initialDoc, opts.vars),
+      state: this.makeState(opts.initialDoc, opts.dark),
     });
   }
 
-  private extensions(vars: ThemeVars): Extension[] {
-    return [
+  private extensions(dark: boolean): Extension[] {
+    const base: Extension[] = [
       lineNumbers(),
       history(),
       bracketMatching(),
@@ -55,12 +56,13 @@ export class CodeEditor {
       EditorView.updateListener.of((u) => {
         if (u.docChanged) this.onChange(u.state.doc.toString());
       }),
-      this.themeCompartment.of(buildCmTheme(vars)),
+      this.themeCompartment.of(dark ? darkTheme : []),
     ];
+    return base;
   }
 
-  private makeState(doc: string, vars: ThemeVars): EditorState {
-    return EditorState.create({ doc, extensions: this.extensions(vars) });
+  private makeState(doc: string, dark: boolean): EditorState {
+    return EditorState.create({ doc, extensions: this.extensions(dark) });
   }
 
   getValue(): string {
@@ -73,10 +75,24 @@ export class CodeEditor {
     });
   }
 
-  /** Swap the editor's colors in place, preserving undo history and cursor position. */
-  setColorTheme(vars: ThemeVars): void {
+  revealPosition(position: number): boolean {
+    if (!Number.isInteger(position) || position < 0 || position > this.view.state.doc.length) {
+      return false;
+    }
     this.view.dispatch({
-      effects: this.themeCompartment.reconfigure(buildCmTheme(vars)),
+      selection: { anchor: position },
+      effects: EditorView.scrollIntoView(position, { y: "center" }),
+      annotations: Transaction.addToHistory.of(false),
+    });
+    this.view.focus();
+    return true;
+  }
+
+  /** Swap the editor theme without changing selection or undo history. */
+  setDark(dark: boolean): void {
+    this.view.dispatch({
+      effects: this.themeCompartment.reconfigure(dark ? darkTheme : []),
+      annotations: Transaction.addToHistory.of(false),
     });
   }
 

@@ -32,6 +32,9 @@
           <button id="btn-zoom-out" data-i18n-title="title.zoomOut" title="Zoom out">－</button>
           <button id="btn-zoom-reset" data-i18n-title="title.zoomReset" title="Reset view">100%</button>
           <button id="btn-zoom-in" data-i18n-title="title.zoomIn" title="Zoom in">＋</button>
+          <button id="btn-edge-routing" type="button" data-i18n-title="title.edgeRouting" title="Adjust edge routes" aria-pressed="false">
+            <span data-i18n="btn.edgeRouting">Adjust edges</span>
+          </button>
         </div>
         <div class="toolbar__group toolbar__group--right">
           <button id="btn-export" data-i18n-title="title.export" title="Export the diagram"><span data-i18n="btn.export">Export</span></button>
@@ -57,6 +60,34 @@
         <section class="pane pane--preview">
           <div class="preview-viewport" id="preview-viewport">
             <div class="preview-canvas" id="preview-canvas"></div>
+          </div>
+          <div id="edge-tools" class="edge-tools" hidden>
+            <div class="edge-tools__row">
+              <label class="edge-tools__field" for="edge-default-mode">
+                <span data-i18n="edge.defaultMode">Default edge mode</span>
+                <select id="edge-default-mode" data-i18n-title="title.edgeDefaultMode" title="Default edge mode">
+                  <option value="corner" data-i18n="edge.modeCorner">Polyline</option>
+                  <option value="smooth" data-i18n="edge.modeSmooth">Smooth curve</option>
+                </select>
+              </label>
+            </div>
+            <div id="edge-selection-tools" class="edge-tools__row" hidden>
+              <label class="edge-tools__field" for="edge-selected-mode">
+                <span data-i18n="edge.mode">Edge mode</span>
+                <select id="edge-selected-mode" data-i18n-title="title.edgeMode" title="Selected edge mode">
+                  <option value="inherit" data-i18n="edge.modeInherit">Use diagram default</option>
+                  <option value="corner" data-i18n="edge.modeCorner">Polyline</option>
+                  <option value="smooth" data-i18n="edge.modeSmooth">Smooth curve</option>
+                </select>
+              </label>
+              <p class="edge-tools__description" data-i18n="edge.autoRerouteHint">Removes manual route points and creates an automatic route.</p>
+              <button id="btn-edge-reroute" type="button" data-i18n="edge.autoReroute" data-i18n-title="title.edgeAutoReroute" title="Automatically reroute edge">Automatically reroute</button>
+              <button id="btn-edge-reset" type="button" data-i18n="edge.reset">Reset edge</button>
+            </div>
+            <div id="node-selection-tools" class="edge-tools__row" hidden>
+              <button id="btn-node-reset" type="button" data-i18n="node.reset" data-i18n-title="title.nodeReset" title="Reset selected node">Reset node position</button>
+            </div>
+            <button id="btn-edge-reset-all" type="button" data-i18n="edge.resetAll">Clear adjustments</button>
           </div>
           <div class="error-panel" id="error-panel" hidden></div>
         </section>

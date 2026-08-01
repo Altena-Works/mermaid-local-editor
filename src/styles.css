@@ -114,6 +114,17 @@ button:active {
   background: var(--bg-soft);
 }
 
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+#btn-edge-routing.is-active {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 #btn-export,
 #btn-copy {
   background: var(--accent);
@@ -356,6 +367,7 @@ button:active {
 }
 
 .preview-canvas {
+  position: relative;
   transform-origin: 0 0;
   display: inline-block;
   will-change: transform;
@@ -365,6 +377,116 @@ button:active {
   display: block;
   max-width: none !important;
   height: auto;
+}
+
+.preview-canvas.is-edge-routing path.flowchart-link[data-id] {
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.preview-canvas.is-edge-routing g.node[id] {
+  cursor: move;
+}
+
+.preview-canvas.is-edge-routing g.node[id].mle-node-selected > :first-child {
+  filter: drop-shadow(0 0 3px var(--accent));
+}
+
+.edge-route-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.edge-route-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.edge-route-selection {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.edge-route-handle {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  cursor: move;
+  pointer-events: all;
+}
+
+.edge-route-handle.is-selected,
+.edge-route-handle:focus-visible {
+  fill: var(--accent-text);
+  stroke: var(--accent);
+  outline: none;
+}
+
+.edge-tools {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 6px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
+}
+
+.edge-tools__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.edge-tools__row[hidden] {
+  display: none;
+}
+
+.edge-tools__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.edge-tools__field select {
+  min-width: 8.5rem;
+  padding: 3px 5px;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.edge-tools__description {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 11px;
+}
+
+.edge-tools[hidden] {
+  display: none;
 }
 
 /* ---------- Error panel ---------- */

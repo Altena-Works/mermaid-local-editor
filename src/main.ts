@@ -12,6 +12,9 @@ import { detectInitialLocale, applyDom, getLocale, setLocale, t, LOCALES } from 
 import type { Locale } from "./i18n";
 import { DocumentManager, type DocHost } from "./document";
 import { createTauriBridge, onCommand, allowClose } from "./tauri-bridge";
+import { diagramRoutingKey } from "./edge-routing";
+import { EdgeRoutingEditor } from "./edge-editor";
+import { resolveNodeSourcePosition } from "./mermaid-source";
 
 // ---------- persisted state ----------
 const LS = {
@@ -42,6 +45,16 @@ const els = {
   btnZoomIn: $("btn-zoom-in"),
   btnZoomOut: $("btn-zoom-out"),
   btnZoomReset: $("btn-zoom-reset"),
+  btnEdgeRouting: $<HTMLButtonElement>("btn-edge-routing"),
+  edgeTools: $<HTMLDivElement>("edge-tools"),
+  edgeDefaultMode: $<HTMLSelectElement>("edge-default-mode"),
+  edgeSelectionTools: $<HTMLDivElement>("edge-selection-tools"),
+  edgeSelectedMode: $<HTMLSelectElement>("edge-selected-mode"),
+  btnEdgeReroute: $<HTMLButtonElement>("btn-edge-reroute"),
+  btnEdgeReset: $<HTMLButtonElement>("btn-edge-reset"),
+  nodeSelectionTools: $<HTMLDivElement>("node-selection-tools"),
+  btnNodeReset: $<HTMLButtonElement>("btn-node-reset"),
+  btnEdgeResetAll: $<HTMLButtonElement>("btn-edge-reset-all"),
   editorCopy: $<HTMLButtonElement>("editor-copy"),
   btnExport: $("btn-export"),
   expDialog: $<HTMLDivElement>("export-dialog"),
@@ -139,6 +152,12 @@ class PanZoom {
 
   private onDown = (e: PointerEvent): void => {
     if (e.button !== 0) return;
+    if (
+      e.target instanceof Element &&
+      e.target.closest("[data-mle-edge-interactive]")
+    ) {
+      return;
+    }
     this.panning = true;
     this.startX = e.clientX - this.tx;
     this.startY = e.clientY - this.ty;
@@ -192,10 +211,38 @@ function clearError(): void {
   els.errorPanel.textContent = "";
 }
 
+let editor: CodeEditor;
+
+const edgeRoutingEditor = new EdgeRoutingEditor({
+  canvas: els.canvas,
+  controls: {
+    mode: els.btnEdgeRouting,
+    tools: els.edgeTools,
+    reset: els.btnEdgeReset,
+    resetAll: els.btnEdgeResetAll,
+    defaultMode: els.edgeDefaultMode,
+    edgeSelection: els.edgeSelectionTools,
+    selectedMode: els.edgeSelectedMode,
+    reroute: els.btnEdgeReroute,
+    nodeSelection: els.nodeSelectionTools,
+    nodeReset: els.btnNodeReset,
+  },
+  storage: localStorage,
+  t,
+  setStatus,
+  revealNodeSource: (sourceId) => {
+    const position = resolveNodeSourcePosition(editor.getValue(), sourceId);
+    return position != null && editor.revealPosition(position);
+  },
+});
+
 async function render(code: string, refit: boolean): Promise<void> {
   const token = ++renderToken;
   try {
-    const { svg } = await renderMermaid(code);
+    const [{ svg }, routingKey] = await Promise.all([
+      renderMermaid(code),
+      diagramRoutingKey(code, currentTheme),
+    ]);
     if (token !== renderToken) return; // a newer render superseded us
     clearError();
     els.canvas.innerHTML = svg;
@@ -207,8 +254,11 @@ async function render(code: string, refit: boolean): Promise<void> {
       svgEl.style.maxWidth = "none";
       if (refit || !lastGoodSize) panzoom.fit(size.w, size.h);
       lastGoodSize = size;
+      const edgeStatus = edgeRoutingEditor.attach(svgEl as SVGSVGElement, routingKey);
+      setStatus(edgeStatus ?? "status.rendered");
+    } else {
+      setStatus("status.rendered");
     }
-    setStatus("status.rendered");
   } catch (err) {
     if (token !== renderToken) return;
     const msg = err instanceof Error ? err.message : String(err);
@@ -235,7 +285,7 @@ let doc: DocumentManager;
 
 const initialCode = localStorage.getItem(LS.code) ?? DEFAULT_CODE;
 
-const editor = new CodeEditor({
+editor = new CodeEditor({
   parent: els.editor,
   initialDoc: initialCode,
   dark: uiDark,
@@ -310,6 +360,7 @@ function buildLangMenu(): void {
       relabelSamples();
       updateLangButton();
       if (lastStatusKey) els.status.textContent = t(lastStatusKey);
+      edgeRoutingEditor.refreshAccessibilityLabels();
       doc.refreshTitle();
       closeLangMenu();
     });
