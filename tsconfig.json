@@ -15,5 +15,5 @@
     "useDefineForClassFields": true,
     "types": []
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }
