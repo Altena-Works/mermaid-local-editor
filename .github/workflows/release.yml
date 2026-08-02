@@ -93,8 +93,16 @@ jobs:
 
       - run: npm ci
 
+      # tauri.conf.json は package.json の version を参照するので、ここが
+      # インストーラの表示バージョンになる。Cargo.toml だけは参照できないため
+      # 同じ値で書き換える。Cargo.lock は次のビルドで cargo が更新する。
       - name: Set version
-        run: npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          node scripts/set-crate-version.mjs "$VERSION"
+        shell: bash
 
       - run: npm run build:renderer
 
@@ -136,11 +144,19 @@ jobs:
         run: |
           {
             echo "## Mermaid Local Editor ${REF_NAME}"
+            # 本文へ載せるのは各言語ブロックの要約と、利用者向けの 変更 / 修正 節だけ。
+            # 追加・削除・検証・備考は開発側の記録なので CHANGELOG に留める。
+            # 節を飛ばしている間は空行・字下げ行・箇条書きを捨て、最初の通常行
+            # （次の言語ブロックの要約）で復帰する。
             awk -v ver="$VERSION" '
               $0 ~ ("^## \\[" ver "\\]") { grab = 1; next }
               grab && /^## \[/ { exit }
               grab {
-                if ($0 ~ /^### (検証|Verified|セキュリティ|Security|備考|Notes)/) { skip = 1; next }
+                if ($0 ~ /^### /) {
+                  if ($0 ~ /^### (変更|修正|Changed|Fixed)[[:space:]]*$/) { skip = 0; print; next }
+                  skip = 1
+                  next
+                }
                 if (skip) {
                   if ($0 ~ /^$/ || $0 ~ /^[[:space:]]/ || $0 ~ /^-/) next
                   skip = 0
