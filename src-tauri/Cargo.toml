@@ -1,6 +1,6 @@
 [package]
 name = "mermaid-local-editor"
-version = "0.5.1"
+version = "0.6.0"
 description = "A local, cross-platform Mermaid diagram editor"
 authors = ["4ltena"]
 edition = "2021"

@@ -1,7 +1,7 @@
 {
   "name": "mermaid-local-editor",
   "private": true,
-  "version": "0.5.1",
+  "version": "0.6.0",
   "license": "Apache-2.0",
   "type": "module",
   "description": "A local, cross-platform Mermaid diagram editor (mermaid.live for the desktop), built with Tauri + Vite.",

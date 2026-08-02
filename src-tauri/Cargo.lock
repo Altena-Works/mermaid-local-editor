@@ -1737,7 +1737,7 @@ dependencies = [
 
 [[package]]
 name = "mermaid-local-editor"
-version = "0.5.1"
+version = "0.6.0"
 dependencies = [
  "base64 0.22.1",
  "rfd 0.17.2",
