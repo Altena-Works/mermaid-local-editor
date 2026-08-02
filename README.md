@@ -68,7 +68,7 @@ npm run dist:linux # AppImage, deb, rpm（Linux で実行）
 git tag v0.6.0
 git push origin v0.6.0
 ```
-アプリのバージョンはタグから決まります。CI がタグの値で `package.json` を書き換え、`src-tauri/tauri.conf.json` はそれを参照します。`src-tauri/Cargo.toml` の `version` だけは自動で追随しないため、手作業で合わせてください。
+アプリのバージョンはタグから決まります。CI がタグの値で `package.json` と `src-tauri/Cargo.toml` を書き換え、`src-tauri/tauri.conf.json` は `package.json` を参照します。手作業での同期は不要です。
 
 `.github/workflows/release.yml` が macOS の universal dmg、Windows の x64 と arm64 の nsis、Linux の AppImage と deb と rpm をビルドし、GitHub Releases へ公開します。Linux は Ubuntu 系が `.deb`、AlmaLinux 系が `.rpm` で、AppImage が全 distro 共通の保険です。現状のビルドは**未署名**です。
 
@@ -131,7 +131,7 @@ Releases are produced by GitHub Actions on a version tag.
 git tag v0.6.0
 git push origin v0.6.0
 ```
-The tag decides the app version: CI rewrites `package.json` from it and `src-tauri/tauri.conf.json` reads that file. Only `version` in `src-tauri/Cargo.toml` does not follow automatically, so bump it by hand.
+The tag decides the app version: CI rewrites `package.json` and `src-tauri/Cargo.toml` from it, and `src-tauri/tauri.conf.json` reads `package.json`. Nothing needs bumping by hand.
 
 `.github/workflows/release.yml` builds the macOS universal dmg, the Windows x64 and arm64 nsis installers, and the Linux AppImage, deb and rpm, then publishes them to GitHub Releases. On Linux, Ubuntu-family systems take the `.deb` and AlmaLinux-family systems the `.rpm`, with AppImage as the universal fallback. Builds are currently **unsigned**.
 

@@ -18,7 +18,7 @@ This file roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 ### 変更
 - アプリの土台を Electron から Tauri v2 へ置き換えた。ファイル入出力、メニュー、確認ダイアログ、状態の保存を Rust 側へ移した。
 - 配布形式を dmg、nsis、deb、rpm、AppImage の5種類にした。macOS の zip と Linux の pacman は生成しない。
-- UI 文言を11言語へ拡張した。配線調整まわりの一部の文言は英語と日本語だけを持ち、他の言語では英語を表示する。
+- UI 文言を11言語へ拡張した。配線調整まわりを含め、全てのキーが全言語に揃っている。
 
 ### 削除
 - Electron シェル一式。
@@ -29,9 +29,10 @@ This file roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 - 実アプリでノードと経由点の操作、拡大縮小との併用、3形式の出力を確認した。
 
 ### 備考
-- アプリのバージョンを `package.json` から参照するようにした。タグを打てばインストーラの表示まで一貫する。`src-tauri/Cargo.toml` だけは手作業で合わせる。
+- アプリのバージョンをタグから決まるようにした。CI が `package.json` と `src-tauri/Cargo.toml` を書き換え、`src-tauri/tauri.conf.json` は `package.json` を参照する。
 - CI が Rust シェルのビルドとテストも実行する。
-- ビルドは未署名のまま。
+- 全ロケールが同じキー集合を持つことをテストで固定した。`translate` は英語へフォールバックするため、欠落は表示上見えない。
+- ビルドは未署名のまま。macOS の Gatekeeper と Windows の SmartScreen で警告が出る。
 
 The app moved from Electron to Tauri v2, and flowchart edges and nodes can now be adjusted by hand.
 
@@ -46,7 +47,7 @@ The app moved from Electron to Tauri v2, and flowchart edges and nodes can now b
 ### Changed
 - Replaced the Electron shell with Tauri v2, moving file I/O, menus, confirmation dialogs and state persistence to Rust.
 - Distribution formats are now dmg, nsis, deb, rpm and AppImage. The macOS zip and the Linux pacman package are no longer produced.
-- Expanded the UI strings to 11 languages. Some edge-adjustment strings exist in English and Japanese only and fall back to English elsewhere.
+- Expanded the UI strings to 11 languages. Every key, including the edge-adjustment ones, is now defined in all of them.
 
 ### Removed
 - The entire Electron shell.
@@ -57,9 +58,10 @@ The app moved from Electron to Tauri v2, and flowchart edges and nodes can now b
 - Exercised node and route-point editing, zoom, and all three export formats in the real app.
 
 ### Notes
-- The app version is read from `package.json`, so a tag propagates all the way to the installer. Only `src-tauri/Cargo.toml` still has to be bumped by hand.
+- The app version now derives from the tag: CI rewrites `package.json` and `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` reads `package.json`.
 - CI now builds and tests the Rust shell as well.
-- Builds remain unsigned.
+- A test pins every locale to the same key set. `translate` falls back to English, so a gap would otherwise be invisible.
+- Builds remain unsigned, so macOS Gatekeeper and Windows SmartScreen will warn.
 
 ## [0.5.1] — 2026-06-30
 
