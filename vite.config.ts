@@ -10,9 +10,10 @@ export default defineConfig({
     strictPort: true,
   },
   test: {
-    // `.claude/worktrees/*` holds throwaway agent worktrees with their own
-    // copies of this suite. Running them hides which tests belong to the repo.
-    exclude: ["**/node_modules/**", "**/dist/**", ".claude/**", "release/**"],
+    // Scratch worktrees and tool state live in dot-directories and can hold
+    // their own copy of this suite. Running those hides which tests are the
+    // repository's own, so keep the run to tracked, non-hidden paths.
+    exclude: ["**/node_modules/**", "**/dist/**", "**/.*/**", "release/**"],
   },
   build: {
     outDir: "dist",
