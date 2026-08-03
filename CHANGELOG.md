@@ -3,6 +3,66 @@
 [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) 形式に概ね従い、[セマンティックバージョニング](https://semver.org/lang/ja/) を採用しています。
 This file roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] — 2026-08-02
+
+アプリの土台を Electron から Tauri v2 へ置き換え、フローチャートの配線とノードを手作業で調整する機能を追加した。
+
+### 追加
+- 配線に経由点を追加し、ドラッグと矢印キーで動かせるようにした。経由点はダブルクリックで削除する。折れ線モードでは Shift を押しながら動かすと、近い側の隣接点と水平になる位置へ揃う。
+- 配線の描き方に折れ線と自動曲線の2種類を用意した。図全体の既定値と、配線ごとの指定を選べる。
+- プレビュー上でノードを動かせるようにした。接続する配線は端点を計算し直して追従し、手動で置いた経由点はそのまま残る。手動補正のない配線は、他のノードを避ける経路へ引き直す。
+- 選択した配線を現在のノード位置から引き直す操作と、配線、ノード、図全体それぞれのリセットを追加した。
+- ノードをダブルクリックすると、Mermaid 入力欄の対応する定義位置へキャレットが移動する。文書と undo 履歴は変わらない。
+- 調整結果は Mermaid ソースと図テーマの組ごとに保存し、同じ図を描き直したときに復元する。SVG、PNG、WebP の出力にも反映する。編集用のハンドルは出力に含まれない。
+
+### 変更
+- アプリの土台を Electron から Tauri v2 へ置き換えた。ファイル入出力、メニュー、確認ダイアログ、状態の保存を Rust 側へ移した。
+- 配布形式を dmg、nsis、deb、rpm、AppImage の5種類にした。macOS の zip と Linux の pacman は生成しない。
+- UI 文言を11言語へ拡張した。配線調整まわりを含め、全てのキーが全言語に揃っている。
+
+### 削除
+- Electron シェル一式。
+
+### 検証
+- 型検査、単体テスト、レンダラーのビルドが通ることを確認した。テストは8ファイル98件。
+- Mermaid 11.15.0 が出力するノードの DOM ID、配線の `data-id` と `data-points`、配線ラベルの対応をテストで固定した。Mermaid を更新したときに黙って壊れるのではなく、テストが落ちるようにするため。
+- 実アプリでノードと経由点の操作、拡大縮小との併用、3形式の出力を確認した。
+
+### 備考
+- アプリのバージョンをタグから決まるようにした。CI が `package.json` と `src-tauri/Cargo.toml` を書き換え、`src-tauri/tauri.conf.json` は `package.json` を参照する。
+- CI が Rust シェルのビルドとテストも実行する。
+- 全ロケールが同じキー集合を持つことをテストで固定した。`translate` は英語へフォールバックするため、欠落は表示上見えない。
+- ビルドは未署名のまま。macOS の Gatekeeper と Windows の SmartScreen で警告が出る。
+
+The app moved from Electron to Tauri v2, and flowchart edges and nodes can now be adjusted by hand.
+
+### Added
+- Route points can be added to an edge and moved by dragging or with the arrow keys; a double click removes one. In polyline mode, holding Shift aligns the point so that the segment towards the nearer neighbour becomes horizontal.
+- Edges can be drawn as polylines or as smooth curves, set per diagram and overridable per edge.
+- Nodes can be moved in the preview. Connected edges recompute their endpoints and follow, manual route points are kept, and edges without manual points are re-routed around the other nodes.
+- Added an action that re-routes the selected edge from the current node positions, plus resets for one edge, one node, and the whole diagram.
+- Double-clicking a node moves the caret to its definition in the Mermaid input. The document and the undo history are left alone.
+- Adjustments are stored per Mermaid source and diagram theme, restored when the same diagram is rendered again, and included in SVG, PNG and WebP output. The editing handles are not exported.
+
+### Changed
+- Replaced the Electron shell with Tauri v2, moving file I/O, menus, confirmation dialogs and state persistence to Rust.
+- Distribution formats are now dmg, nsis, deb, rpm and AppImage. The macOS zip and the Linux pacman package are no longer produced.
+- Expanded the UI strings to 11 languages. Every key, including the edge-adjustment ones, is now defined in all of them.
+
+### Removed
+- The entire Electron shell.
+
+### Verified
+- Type-check, unit tests and the renderer build all pass; 98 tests across 8 files.
+- Pinned the Mermaid 11.15.0 output contract in tests: node DOM IDs, edge `data-id` and `data-points`, and edge-label association, so a Mermaid upgrade fails the tests instead of breaking silently.
+- Exercised node and route-point editing, zoom, and all three export formats in the real app.
+
+### Notes
+- The app version now derives from the tag: CI rewrites `package.json` and `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` reads `package.json`.
+- CI now builds and tests the Rust shell as well.
+- A test pins every locale to the same key set. `translate` falls back to English, so a gap would otherwise be invisible.
+- Builds remain unsigned, so macOS Gatekeeper and Windows SmartScreen will warn.
+
 ## [0.5.1] — 2026-06-30
 
 軽微な UX 修正と、CI 依存・テストの整備。

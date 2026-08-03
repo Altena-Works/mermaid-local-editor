@@ -1,4 +1,9 @@
-import { EditorState, type Extension } from "@codemirror/state";
+import {
+  Compartment,
+  EditorState,
+  Transaction,
+  type Extension,
+} from "@codemirror/state";
 import { EditorView, keymap, lineNumbers, highlightActiveLine } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { bracketMatching } from "@codemirror/language";
@@ -30,6 +35,7 @@ const darkTheme = EditorView.theme(
 export class CodeEditor {
   private view: EditorView;
   private onChange: (doc: string) => void;
+  private themeCompartment = new Compartment();
 
   constructor(opts: EditorOptions) {
     this.onChange = opts.onChange;
@@ -50,8 +56,8 @@ export class CodeEditor {
       EditorView.updateListener.of((u) => {
         if (u.docChanged) this.onChange(u.state.doc.toString());
       }),
+      this.themeCompartment.of(dark ? darkTheme : []),
     ];
-    if (dark) base.push(darkTheme);
     return base;
   }
 
@@ -69,10 +75,25 @@ export class CodeEditor {
     });
   }
 
-  /** Rebuild the editor state to swap the light/dark theme in place. */
+  revealPosition(position: number): boolean {
+    if (!Number.isInteger(position) || position < 0 || position > this.view.state.doc.length) {
+      return false;
+    }
+    this.view.dispatch({
+      selection: { anchor: position },
+      effects: EditorView.scrollIntoView(position, { y: "center" }),
+      annotations: Transaction.addToHistory.of(false),
+    });
+    this.view.focus();
+    return true;
+  }
+
+  /** Swap the editor theme without changing selection or undo history. */
   setDark(dark: boolean): void {
-    const doc = this.getValue();
-    this.view.setState(this.makeState(doc, dark));
+    this.view.dispatch({
+      effects: this.themeCompartment.reconfigure(dark ? darkTheme : []),
+      annotations: Transaction.addToHistory.of(false),
+    });
   }
 
   focus(): void {

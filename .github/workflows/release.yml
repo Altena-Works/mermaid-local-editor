@@ -48,33 +48,27 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            platform: mac
             key: mac
-            args: ""
+            target: universal-apple-darwin
             artifacts: |
-              release/*.dmg
-              release/*.zip
+              src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
           - os: windows-latest
-            platform: win
             key: win-x64
-            args: "--x64"
+            target: x86_64-pc-windows-msvc
             artifacts: |
-              release/*-x64.exe
+              src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
           - os: windows-latest
-            platform: win
             key: win-arm64
-            args: "--arm64"
+            target: aarch64-pc-windows-msvc
             artifacts: |
-              release/*-arm64.exe
+              src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.exe
           - os: ubuntu-latest
-            platform: linux
             key: linux
-            args: ""
+            target: x86_64-unknown-linux-gnu
             artifacts: |
-              release/*.AppImage
-              release/*.deb
-              release/*.rpm
-              release/*.pacman
+              src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
+              src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb
+              src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -87,26 +81,33 @@ jobs:
           node-version: 24
           cache: npm
 
-      - run: npm ci
+      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
+        with:
+          targets: ${{ matrix.target }}
 
-      # Linux の rpm / pacman ターゲットは外部ツールに依存する。
-      # rpm -> rpmbuild、pacman -> bsdtar(libarchive-tools)。ubuntu-latest が
-      # 将来 rpm を外しても落ちないよう、両方を明示インストールする。
-      - name: Install Linux packaging deps
-        if: matrix.platform == 'linux'
+      - name: Install Linux system deps (Tauri build requirements)
+        if: matrix.key == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libarchive-tools rpm
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf rpm
 
-      # タグのバージョンを成果物名へ反映（electron-builder は package.json を参照する）
+      - run: npm ci
+
+      # tauri.conf.json は package.json の version を参照するので、ここが
+      # インストーラの表示バージョンになる。Cargo.toml だけは参照できないため
+      # 同じ値で書き換える。Cargo.lock は次のビルドで cargo が更新する。
       - name: Set version
-        run: npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          node scripts/set-crate-version.mjs "$VERSION"
+        shell: bash
 
-      - name: Build renderer/main/preload
-        run: npm run build
+      - run: npm run build:renderer
 
       - name: Package (${{ matrix.key }})
-        run: npx electron-builder --${{ matrix.platform }} ${{ matrix.args }} --publish never
+        run: npx tauri build --target ${{ matrix.target }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -143,11 +144,19 @@ jobs:
         run: |
           {
             echo "## Mermaid Local Editor ${REF_NAME}"
+            # 本文へ載せるのは各言語ブロックの要約と、利用者向けの 変更 / 修正 節だけ。
+            # 追加・削除・検証・備考は開発側の記録なので CHANGELOG に留める。
+            # 節を飛ばしている間は空行・字下げ行・箇条書きを捨て、最初の通常行
+            # （次の言語ブロックの要約）で復帰する。
             awk -v ver="$VERSION" '
               $0 ~ ("^## \\[" ver "\\]") { grab = 1; next }
               grab && /^## \[/ { exit }
               grab {
-                if ($0 ~ /^### (検証|Verified|セキュリティ|Security|備考|Notes)/) { skip = 1; next }
+                if ($0 ~ /^### /) {
+                  if ($0 ~ /^### (変更|修正|Changed|Fixed)[[:space:]]*$/) { skip = 0; print; next }
+                  skip = 1
+                  next
+                }
                 if (skip) {
                   if ($0 ~ /^$/ || $0 ~ /^[[:space:]]/ || $0 ~ /^-/) next
                   skip = 0

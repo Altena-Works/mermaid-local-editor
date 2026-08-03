@@ -12,9 +12,25 @@ dist/
 # SDD scratch (subagent-driven-development ledger/briefs/reports)
 .superpowers/
 
-# Claude-local working docs (instructions / handoff memo; not for the repo)
+# Agent-local operating context (instructions / handoff memo / scratch state).
+# These are how a coding agent is driven locally, not project deliverables.
 CLAUDE.md
+AGENTS.md
+GEMINI.md
 HANDOFF.md
+.claude/
+.codex/
+.codex-orchestia/
+.cursor/
+.cursorrules
+.github/copilot-instructions.md
 
 # Local-only design docs (brainstorm specs/plans; not for the public repo)
 docs/superpowers/
+
+# Rust / Tauri build artifacts
+src-tauri/target/
+src-tauri/gen/
+
+# Local persona note for the agent
+/PERSONA.md
