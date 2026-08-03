@@ -1,12 +1,12 @@
-![Version](https://img.shields.io/github/v/release/4ltena/mermaid-local-editor)
-![License](https://img.shields.io/github/license/4ltena/mermaid-local-editor)
+![Version](https://img.shields.io/github/v/release/Altena-Works/mermaid-local-editor)
+![License](https://img.shields.io/github/license/Altena-Works/mermaid-local-editor)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![HTML5 / CSS3](https://img.shields.io/badge/HTML5_%2F_CSS3-E34F26?logo=html5&logoColor=white)
 ![Tauri](https://img.shields.io/badge/Tauri-24C8D8?logo=tauri&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white)
-![Downloads](https://img.shields.io/github/downloads/4ltena/mermaid-local-editor/total?label=downloads)
-![CI](https://img.shields.io/github/actions/workflow/status/4ltena/mermaid-local-editor/ci.yml?branch=main&label=CI)
+![Downloads](https://img.shields.io/github/downloads/Altena-Works/mermaid-local-editor/total?label=downloads)
+![CI](https://img.shields.io/github/actions/workflow/status/Altena-Works/mermaid-local-editor/ci.yml?branch=main&label=CI)
 
 # Mermaid Local Editor
 
