@@ -3,7 +3,7 @@
 [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) 形式に概ね従い、[セマンティックバージョニング](https://semver.org/lang/ja/) を採用しています。
 This file roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/).
 
-## [0.6.0] — 2026-08-02
+## [0.6.0] — 2026-08-05
 
 アプリの土台を Electron から Tauri v2 へ置き換え、フローチャートの配線とノードを手作業で調整する機能を追加した。
 
@@ -24,8 +24,9 @@ This file roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 - Electron シェル一式。
 
 ### 検証
-- 型検査、単体テスト、レンダラーのビルドが通ることを確認した。テストは8ファイル98件。
+- 型検査、単体テスト、レンダラーのビルドが通ることを確認した。テストは9ファイル107件。
 - Mermaid 11.15.0 が出力するノードの DOM ID、配線の `data-id` と `data-points`、配線ラベルの対応をテストで固定した。Mermaid を更新したときに黙って壊れるのではなく、テストが落ちるようにするため。
+- クレートのバージョンを書き換えるスクリプトを、実際に子プロセスとして起動して検証した。タグと同じバージョンが既に manifest に入っている通常のリリース形も含む。
 - 実アプリでノードと経由点の操作、拡大縮小との併用、3形式の出力を確認した。
 
 ### 備考
@@ -53,8 +54,9 @@ The app moved from Electron to Tauri v2, and flowchart edges and nodes can now b
 - The entire Electron shell.
 
 ### Verified
-- Type-check, unit tests and the renderer build all pass; 98 tests across 8 files.
+- Type-check, unit tests and the renderer build all pass; 107 tests across 9 files.
 - Pinned the Mermaid 11.15.0 output contract in tests: node DOM IDs, edge `data-id` and `data-points`, and edge-label association, so a Mermaid upgrade fails the tests instead of breaking silently.
+- Covered the crate-version rewrite script by running it as a real child process, including the ordinary release shape where the manifest already carries the version being tagged.
 - Exercised node and route-point editing, zoom, and all three export formats in the real app.
 
 ### Notes
