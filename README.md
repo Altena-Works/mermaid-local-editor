@@ -63,10 +63,10 @@ npm run dist:linux # AppImage, deb, rpm（Linux で実行）
 出力先は `src-tauri/target/<target>/release/bundle/` です。
 
 ### リリース（CI/CD）
-リリースはバージョンタグで GitHub Actions が生成します。
+リリースはバージョンタグで GitHub Actions が生成します。`vX.Y.Z` の部分が公開するバージョンです。
 ```bash
-git tag v0.6.0
-git push origin v0.6.0
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 アプリのバージョンはタグから決まります。CI がタグの値で `package.json` と `src-tauri/Cargo.toml` を書き換え、`src-tauri/tauri.conf.json` は `package.json` を参照します。手作業での同期は不要です。
 
@@ -126,10 +126,10 @@ npm run dist:linux # AppImage, deb, rpm (run on Linux)
 Output lands in `src-tauri/target/<target>/release/bundle/`.
 
 ### Release (CI/CD)
-Releases are produced by GitHub Actions on a version tag.
+Releases are produced by GitHub Actions on a version tag; `vX.Y.Z` is the version being published.
 ```bash
-git tag v0.6.0
-git push origin v0.6.0
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 The tag decides the app version: CI rewrites `package.json` and `src-tauri/Cargo.toml` from it, and `src-tauri/tauri.conf.json` reads `package.json`. Nothing needs bumping by hand.
 
